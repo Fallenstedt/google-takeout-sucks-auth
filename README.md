@@ -1,6 +1,6 @@
 # Google Takeout Sucks Auth
 
-This repository contains the code needed to
+This is the auth service for the CLI tool [Google Takeout Sucks](https://github.com/Fallenstedt/google-takeout-sucks)
 
 ## Running Locally
 
