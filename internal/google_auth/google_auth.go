@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/Fallenstedt/google-takeout-sucks-auth/internal/config"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -43,8 +45,8 @@ func (g *GoogleAuth) getGoogleConfig() *oauth2.Config {
 		return _config
 	}
 
-	// TODO use correct credential file based on environment
-	b, err := os.ReadFile("dev-credentials.json")
+	// Use config to determine credential file
+	b, err := os.ReadFile(config.Cfg.CredentialsFile())
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
