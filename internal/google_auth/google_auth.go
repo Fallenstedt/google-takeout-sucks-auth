@@ -40,6 +40,18 @@ func (g *GoogleAuth) ExchangeToken(ctx context.Context, code string) (*oauth2.To
 	return config.Exchange(ctx, code)
 }
 
+func (g *GoogleAuth) GenerateStateToken() (string, error) {
+	// Generate a secure random state (32 bytes -> 64 hex chars)
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	state := hex.EncodeToString(b)
+
+	return state, nil
+}
+
+
 func (g *GoogleAuth) getGoogleConfig() *oauth2.Config {
 	if _config != nil {
 		return _config
@@ -59,15 +71,4 @@ func (g *GoogleAuth) getGoogleConfig() *oauth2.Config {
 	_config = config
 
 	return _config
-}
-
-func (g *GoogleAuth) GenerateStateToken() (string, error) {
-	// Generate a secure random state (32 bytes -> 64 hex chars)
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	state := hex.EncodeToString(b)
-
-	return state, nil
 }
