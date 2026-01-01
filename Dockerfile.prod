@@ -1,0 +1,37 @@
+# Production Dockerfile - includes credentials.json
+# Multi-stage build: compile statically, run in minimal image
+
+# --- build stage ---
+FROM golang:1.24.7-alpine AS builder
+
+WORKDIR /src
+RUN apk add --no-cache git
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Set env for prod build
+ENV APP_ENV=prod
+
+# Build a static binary - use CGO_ENABLED=0 for static linking
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /app/bin/server-prod ./cmd/server
+
+# --- final stage ---
+FROM alpine:3.18
+
+RUN mkdir -p /app/bin
+WORKDIR /app
+
+# Copy binary
+COPY --from=builder /app/bin/server-prod ./bin/server
+
+# Copy production credentials into image
+COPY credentials.json ./credentials.json
+
+# Expose port - adjust if needed
+EXPOSE 8080
+
+ENV APP_ENV=prod
+CMD ["/app/bin/server"]

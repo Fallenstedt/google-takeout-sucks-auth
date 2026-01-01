@@ -51,7 +51,6 @@ func (g *GoogleAuth) GenerateStateToken() (string, error) {
 	return state, nil
 }
 
-
 func (g *GoogleAuth) getGoogleConfig() *oauth2.Config {
 	if _config != nil {
 		return _config

@@ -1,0 +1,31 @@
+# Ignore local build artifacts and VCS
+
+.git
+bin
+.tmp
+_.log
+_.cache
+
+# IDE/editor files
+
+.vscode
+.idea
+
+# OS files
+
+.DS_Store
+
+# Credentials - keep out of context unless intentionally building prod/dev images
+
+# Note: We intentionally do NOT ignore credentials files because the user requested they be included in images.
+
+# If you want to avoid including them in builds, add credentials.json and dev-credentials.json to this file.
+
+# Go build cache
+
+**/vendor
+**/node_modules
+
+# Dockerfile build artifacts
+
+Dockerfile\*
