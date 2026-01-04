@@ -11,6 +11,7 @@ import (
 func main() {
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/status", handlers.Status)
 	mux.HandleFunc("/login", handlers.Login)
 	mux.HandleFunc("/oauth2/callback", handlers.Callback)
 

@@ -3,11 +3,48 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/Fallenstedt/google-takeout-sucks-auth/internal/google_auth"
 	"github.com/Fallenstedt/google-takeout-sucks-auth/internal/logging"
 )
+
+var startTime = time.Now()
+
+func Status(w http.ResponseWriter, r*http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	type healthResp struct {
+        Status     string `json:"status"`
+        Timestamp  string `json:"timestamp"`
+        Uptime     string `json:"uptime"`
+        Goroutines int    `json:"goroutines"`
+        AllocBytes uint64 `json:"alloc_bytes"`
+    }
+
+    var m runtime.MemStats
+    runtime.ReadMemStats(&m)
+
+    resp := healthResp{
+        Status:     "ok",
+        Timestamp:  time.Now().UTC().Format(time.RFC3339),
+        Uptime:     time.Since(startTime).String(),
+        Goroutines: runtime.NumGoroutine(),
+        AllocBytes: m.Alloc,
+    }
+
+    w.Header().Set("Content-Type", "application/json; charset=utf-8")
+    w.WriteHeader(http.StatusOK)
+    if err := json.NewEncoder(w).Encode(resp); err != nil {
+        logging.ErrorLog.Printf("failed to encode status response: %v", err)
+        http.Error(w, "failed to encode response", http.StatusInternalServerError)
+        return
+    }
+}
 
 // Login should redirect the user to Login Screen
 func Login(w http.ResponseWriter, r *http.Request) {
