@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
 	"runtime"
 	"time"
@@ -12,38 +13,71 @@ import (
 
 var startTime = time.Now()
 
-func Status(w http.ResponseWriter, r*http.Request) {
+func TermsOfService(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if ok := renderMarkdownPage(w, r, termsOfServiceHTML, termsOfServiceETag); ok {
+		return
+	}
+}
+
+func PrivacyPolicy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if ok := renderMarkdownPage(w, r, privacyHTML, privacyETag); ok {
+		return
+	}
+}
+
+func Home(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if ok := renderMarkdownPage(w, r, homeHTML, homeETag); ok {
+		return
+	}
+}
+
+func Status(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	type healthResp struct {
-        Status     string `json:"status"`
-        Timestamp  string `json:"timestamp"`
-        Uptime     string `json:"uptime"`
-        Goroutines int    `json:"goroutines"`
-        AllocBytes uint64 `json:"alloc_bytes"`
-    }
+		Status     string `json:"status"`
+		Timestamp  string `json:"timestamp"`
+		Uptime     string `json:"uptime"`
+		Goroutines int    `json:"goroutines"`
+		AllocBytes uint64 `json:"alloc_bytes"`
+	}
 
-    var m runtime.MemStats
-    runtime.ReadMemStats(&m)
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
 
-    resp := healthResp{
-        Status:     "ok",
-        Timestamp:  time.Now().UTC().Format(time.RFC3339),
-        Uptime:     time.Since(startTime).String(),
-        Goroutines: runtime.NumGoroutine(),
-        AllocBytes: m.Alloc,
-    }
+	resp := healthResp{
+		Status:     "ok",
+		Timestamp:  time.Now().UTC().Format(time.RFC3339),
+		Uptime:     time.Since(startTime).String(),
+		Goroutines: runtime.NumGoroutine(),
+		AllocBytes: m.Alloc,
+	}
 
-    w.Header().Set("Content-Type", "application/json; charset=utf-8")
-    w.WriteHeader(http.StatusOK)
-    if err := json.NewEncoder(w).Encode(resp); err != nil {
-        logging.ErrorLog.Printf("failed to encode status response: %v", err)
-        http.Error(w, "failed to encode response", http.StatusInternalServerError)
-        return
-    }
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		logging.ErrorLog.Printf("failed to encode status response: %v", err)
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 // Login should redirect the user to Login Screen
@@ -118,4 +152,25 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+// renderMarkdownPage converts embedded markdown to HTML, handles ETag/304, and writes the templated page.
+// Returns true when response has been written (including 304), false on non-fatal errors.
+func renderMarkdownPage(w http.ResponseWriter, r *http.Request, contentHTML template.HTML, etag string) bool {
+	// Conditional GET support
+	if inm := r.Header.Get("If-None-Match"); inm != "" && inm == etag {
+		w.Header().Set("ETag", etag)
+		w.WriteHeader(http.StatusNotModified)
+		return true
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	w.Header().Set("ETag", etag)
+
+	if err := pageTmpl.Execute(w, struct{ Content template.HTML }{Content: contentHTML}); err != nil {
+		logging.ErrorLog.Printf("failed to execute template: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return true
+	}
+	return true
 }

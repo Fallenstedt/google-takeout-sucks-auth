@@ -14,6 +14,9 @@ func main() {
 	mux.HandleFunc("/status", handlers.Status)
 	mux.HandleFunc("/login", handlers.Login)
 	mux.HandleFunc("/oauth2/callback", handlers.Callback)
+	mux.HandleFunc("/privacy-policy", handlers.PrivacyPolicy)
+	mux.HandleFunc("/terms-of-service", handlers.TermsOfService)
+	mux.HandleFunc("/", handlers.Home)
 
 	// Wrap mux with logging middleware
 	handler := middleware.LogRequest(mux)
