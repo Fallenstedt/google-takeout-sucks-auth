@@ -1,27 +1,38 @@
 package handlers
 
 import (
-	"bytes"
-	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"net/http"
 	"runtime"
 	"time"
-
-	"github.com/yuin/goldmark"
 
 	"github.com/Fallenstedt/google-takeout-sucks-auth/internal/google_auth"
 	"github.com/Fallenstedt/google-takeout-sucks-auth/internal/logging"
 )
 
 var startTime = time.Now()
-var homeETag string
 
-func init() {
-	sum := sha256.Sum256(homeContent)
-	homeETag = fmt.Sprintf(`"%x"`, sum[:])
+func TermsOfService(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if ok := renderMarkdownPage(w, r, termsOfServiceHTML, termsOfServiceETag); ok {
+		return
+	}
+}
+
+func PrivacyPolicy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if ok := renderMarkdownPage(w, r, privacyHTML, privacyETag); ok {
+		return
+	}
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
@@ -30,28 +41,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert Markdown to HTML using goldmark
-	md := goldmark.New()
-	var buf bytes.Buffer
-	if err := md.Convert(homeContent, &buf); err != nil {
-		logging.ErrorLog.Printf("failed to convert markdown: %v", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	t, err := template.New("home").Parse(page)
-	if err != nil {
-		logging.ErrorLog.Printf("failed to parse template: %v", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	w.Header().Set("ETag", homeETag)
-	if err := t.Execute(w, struct{ Content template.HTML }{Content: template.HTML(buf.String())}); err != nil {
-		logging.ErrorLog.Printf("failed to execute template: %v", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+	if ok := renderMarkdownPage(w, r, homeHTML, homeETag); ok {
 		return
 	}
 }
@@ -162,4 +152,25 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+// renderMarkdownPage converts embedded markdown to HTML, handles ETag/304, and writes the templated page.
+// Returns true when response has been written (including 304), false on non-fatal errors.
+func renderMarkdownPage(w http.ResponseWriter, r *http.Request, contentHTML template.HTML, etag string) bool {
+	// Conditional GET support
+	if inm := r.Header.Get("If-None-Match"); inm != "" && inm == etag {
+		w.Header().Set("ETag", etag)
+		w.WriteHeader(http.StatusNotModified)
+		return true
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	w.Header().Set("ETag", etag)
+
+	if err := pageTmpl.Execute(w, struct{ Content template.HTML }{Content: contentHTML}); err != nil {
+		logging.ErrorLog.Printf("failed to execute template: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return true
+	}
+	return true
 }
