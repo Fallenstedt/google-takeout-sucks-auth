@@ -4,13 +4,13 @@
 
 ## 1. Introduction
 
-This Privacy Policy explains how the **google-takeout-sucks** CLI tool handles information.
+This Privacy Policy explains how the **Download Takeout Files** CLI tool handles information.
 
 This is an open-source command-line tool that runs locally on your machine. It is not designed to collect or transmit personal data.
 
 ## 2. No Data Collection
 
-**google-takeout-sucks does not collect, store, transmit, or sell any personal information.**
+**Download Takeout Files does not collect, store, transmit, or sell any personal information.**
 
 - No analytics
 - No telemetry

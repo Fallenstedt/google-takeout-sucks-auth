@@ -33,7 +33,7 @@ const page = `<!doctype html>
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width,initial-scale=1">
-		<title>Google Takeout Sucks</title>
+		<title>Download Takeout Files</title>
 		<style>
 			body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 2rem; color: #111 }
 			.container { max-width: 900px; margin: 0 auto; }

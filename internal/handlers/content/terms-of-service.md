@@ -4,11 +4,11 @@
 
 ## 1. Acceptance of Terms
 
-By using the **google-takeout-sucks** command-line tool (“the tool”), you agree to these Terms of Service. If you do not agree, do not use the tool.
+By using the **Download Takeout Files** command-line tool (“the tool”), you agree to these Terms of Service. If you do not agree, do not use the tool.
 
 ## 2. Description of the Tool
 
-**google-takeout-sucks** is an open-source CLI tool that helps download Google Takeout zip file data using Google Drive APIs.
+**Download Takeout Files** is an open-source CLI tool that helps download Google Takeout zip file data using Google Drive APIs.
 
 The tool runs locally on your machine and only performs actions you explicitly request.
 

@@ -1,4 +1,4 @@
-# google-takeout-sucks
+# Download Takeout Files
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/fallenstedt)
 
@@ -28,7 +28,7 @@ Authentication only occurs when running the download command.
 
 This project uses a separate, open-source authentication service:
 
-[Google Takeout Sucks Auth](https://github.com/Fallenstedt/google-takeout-sucks-auth)
+[Download Takeout Files Auth](https://github.com/Fallenstedt/google-takeout-sucks-auth)
 
 When you run the download command:
 
